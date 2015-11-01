@@ -14,13 +14,13 @@ namespace pixel_monitor
         /// <param name="previous"></param>
         /// <param name="MinDelta"></param>
         /// <returns></returns>
-        public bool PixelChanged(Color current, Color previous, int MinDelta)
+        public static bool PixelChanged(Color current, Color previous, int MinDelta)
         {
             int totalDelta = Math.Abs((current.R - previous.R) + (current.G - previous.G) + (current.B - previous.B));
             return totalDelta >= MinDelta;
         }
 
-        public bool PixelsChanged(Color[] current, Color[] previous, int MinPixelDiffToBeConsideredDifferent, int MinDifferentPixels)
+        public static bool PixelsChanged(Color[] current, Color[] previous, int MinPixelDiffToBeConsideredDifferent, int MinDifferentPixels)
         {
             if(current.Length != previous.Length)
             {
@@ -44,5 +44,23 @@ namespace pixel_monitor
 
         }
 
+        public static Color GetCurrentRenderedPixelAtLocation(int x, int y)
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            if (x > bounds.Width || y > bounds.Width || x < 0 || y < 0)
+            {
+                throw new Exception("Requested pixel is outside bounds of the screen.");
+            }
+
+            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+                    Color result = bitmap.GetPixel(x, y);
+                    return result;
+                }
+            }
+        }
     }
 }
