@@ -9,49 +9,50 @@ namespace pixel_monitor
     {
         static void Main(string[] args)
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+            //CheckScreenRegion(10, 10);
+            Console.WriteLine("Press enter to begin monitoring");
+            Console.ReadLine();
+
+            Color previous;
+            Color current;
+            int XCoordinate = 300;
+            int YCorordinate = 300;
+            int MonitorFrequency = 3 * 1000; //3s
+            int MinDeltaToAlertOn = 10;
+
+            SoundPlayer SP = new SoundPlayer("C://Change.wav"); //change to whatever notify sound you want
+            while (true)
             {
-                using (Graphics g = Graphics.FromImage(bitmap))
+
+                previous = ImageComparer.GetCurrentRenderedPixelAtLocation(XCoordinate, YCorordinate);
+                System.Threading.Thread.Sleep(MonitorFrequency);
+                current = ImageComparer.GetCurrentRenderedPixelAtLocation(XCoordinate, YCorordinate);
+
+                if (ImageComparer.PixelChanged(current, previous, MinDeltaToAlertOn))
                 {
-
-                    Color previous;
-                    Color current;
-                    Console.WriteLine("Press enter to begin monitoring");
-                    Console.ReadLine();
-                    int XCoordinate = 300;
-                    int YCorordinate = 300;
-                    int MonitorFrequency = 3 * 1000; //3s
-                    int totalDelta = 0;
-                    int MinDeltaToAlertOn = 10;
-                    SoundPlayer SP = new SoundPlayer("C://Change.wav"); //change to whatever notify sound you want
-                    while (true)
-                    {
-
-                        g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                        previous = bitmap.GetPixel(XCoordinate, YCorordinate);
-                        System.Threading.Thread.Sleep(MonitorFrequency);
-
-                        g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                        current = bitmap.GetPixel(XCoordinate, YCorordinate);
-                        totalDelta = 0;
-
-                        totalDelta += Math.Abs((current.R - previous.R) + (current.G - previous.G) + (current.B - previous.B));
-
-                        if (totalDelta >= MinDeltaToAlertOn)
-                        {
-                            Console.WriteLine("SCREEN CHANGE DETECTED @ [" + System.DateTime.Now.ToString() + "]");
-                            Console.WriteLine("Previous Screen = [" + previous.R + "," + previous.G + "," + previous.B + "]");
-                            Console.WriteLine("Current Screen = [" + current.R + "," + current.G + "," + current.B + "]");
-                            Console.WriteLine("Total Delta = [" + totalDelta + "]");
-                            SP.Play();
-                        }
-
-                    }
-
+                    Console.WriteLine("SCREEN CHANGE DETECTED @ [" + System.DateTime.Now.ToString() + "]");
+                    SP.Play();
                 }
 
             }
+
+
+        }
+
+        /// <summary>
+        /// just demonstrates how to check a screen region
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="width"></param>
+        /// <param name="Xorigin"></param>
+        /// <param name="YOrigin"></param>
+        static void CheckScreenRegion(int height, int width, int Xorigin = 0, int YOrigin = 0)
+        {
+            var colors = ImageComparer.GetCurrentRenderedPixelBox(height, width, Xorigin, YOrigin);
+            System.Threading.Thread.Sleep(5000);
+            var newcolors = ImageComparer.GetCurrentRenderedPixelBox(height, width, Xorigin, YOrigin);
+
+            Console.WriteLine("Pixel box changed?" + ImageComparer.PixelsChanged(newcolors, colors, 1, 1));
         }
     }
 }
