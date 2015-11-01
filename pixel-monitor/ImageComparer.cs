@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Media;
+using System.Collections.Generic;
 
 namespace pixel_monitor
 {
@@ -20,6 +21,14 @@ namespace pixel_monitor
             return totalDelta >= MinDelta;
         }
 
+        /// <summary>
+        /// Simple method for comparing arrays of colors (pixels)
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="previous"></param>
+        /// <param name="MinPixelDiffToBeConsideredDifferent"></param>
+        /// <param name="MinDifferentPixels"></param>
+        /// <returns></returns>
         public static bool PixelsChanged(Color[] current, Color[] previous, int MinPixelDiffToBeConsideredDifferent, int MinDifferentPixels)
         {
             if(current.Length != previous.Length)
@@ -44,6 +53,12 @@ namespace pixel_monitor
 
         }
 
+        /// <summary>
+        /// Gets the current rendered pixel at a given point.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public static Color GetCurrentRenderedPixelAtLocation(int x, int y)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -52,15 +67,51 @@ namespace pixel_monitor
                 throw new Exception("Requested pixel is outside bounds of the screen.");
             }
 
-            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+            using (Bitmap bitmap = new Bitmap(1,1))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                    Color result = bitmap.GetPixel(x, y);
+                    Point sourcePoint = new Point(x, y);
+                    Point destinationPoint = new Point(0, 0);
+                    g.CopyFromScreen(sourcePoint, destinationPoint, new Size(1,1));
+                    Color result = bitmap.GetPixel(0,0);
                     return result;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the array of pixels representing the box speicified by the parameters
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="width"></param>
+        /// <param name="xOffset"></param>
+        /// <param name="yOffset"></param>
+        /// <returns></returns>
+        public static Color[] GetCurrentRenderedPixelBox(int height, int width, int xOffset = 0, int yOffset = 0)
+        {
+            using (Bitmap bitmap = new Bitmap(width, height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    Size size = new Size(width,height);
+                    Point offset = new Point(xOffset, yOffset);
+                    g.CopyFromScreen(offset, offset, size);
+
+                    Color[] pixels = new Color[height * width];
+                    int index = 0; 
+                    for(int x = 0; x < width; x++)
+                    {
+                        for(int y= 0; y < height; y++)
+                        {
+                            pixels[index] = bitmap.GetPixel(x, y);
+                            index++;
+                        }
+                    }
+
+                    return pixels;
+                }
+            }    
         }
     }
 }

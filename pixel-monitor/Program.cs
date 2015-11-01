@@ -9,6 +9,7 @@ namespace pixel_monitor
     {
         static void Main(string[] args)
         {
+            //CheckScreenRegion(10, 10);
             Console.WriteLine("Press enter to begin monitoring");
             Console.ReadLine();
 
@@ -17,8 +18,8 @@ namespace pixel_monitor
             int XCoordinate = 300;
             int YCorordinate = 300;
             int MonitorFrequency = 3 * 1000; //3s
-
             int MinDeltaToAlertOn = 10;
+
             SoundPlayer SP = new SoundPlayer("C://Change.wav"); //change to whatever notify sound you want
             while (true)
             {
@@ -36,6 +37,22 @@ namespace pixel_monitor
             }
 
 
+        }
+
+        /// <summary>
+        /// just demonstrates how to check a screen region
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="width"></param>
+        /// <param name="Xorigin"></param>
+        /// <param name="YOrigin"></param>
+        static void CheckScreenRegion(int height, int width, int Xorigin = 0, int YOrigin = 0)
+        {
+            var colors = ImageComparer.GetCurrentRenderedPixelBox(height, width, Xorigin, YOrigin);
+            System.Threading.Thread.Sleep(5000);
+            var newcolors = ImageComparer.GetCurrentRenderedPixelBox(height, width, Xorigin, YOrigin);
+
+            Console.WriteLine("Pixel box changed?" + ImageComparer.PixelsChanged(newcolors, colors, 1, 1));
         }
     }
 }
